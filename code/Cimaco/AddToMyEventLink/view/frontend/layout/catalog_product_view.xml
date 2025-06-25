@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="product.info.addto">
+            <block class="Magento\Framework\View\Element\Template"
+                    name="add.to.my.event"
+                    template="Cimaco_AddToMyEventLink::event.phtml">
+                <arguments>
+                    <argument name="productInfoVM" xsi:type="object">Cimaco\AddToMyEventLink\ViewModel\ProductInfo</argument>
+                    <argument name="loginStatusVM" xsi:type="object">Cimaco\AddToMyEventLink\ViewModel\LoginStatus</argument>
+                </arguments>
+                
+            </block>
+        </referenceBlock>
+    </body>
+</page>
+

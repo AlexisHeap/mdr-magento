@@ -1,0 +1,61 @@
+@primary-cimaco-color: #004a99;
+
+.add-to-my-event-button,
+.add-to-my-event-button:hover {
+    background-color: @primary-cimaco-color;
+    color: white;
+}
+
+#add-to-my-event-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#qty {
+    color: gray;
+}
+
+#price {
+    color: @primary-cimaco-color;
+}
+
+#product-info-container {
+    display: flex;
+}
+
+#qty-and-price {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center;     
+    width: 100px;            
+    padding: 10px;
+}
+
+#select-event {
+    width: 250px;
+}
+
+#gift-types {
+    display: flex;
+    gap: 48px;
+    margin-top: 8px;
+}
+
+#physical-gift-type,
+#ecological-gift-type {
+    display: flex;
+    align-items: center;
+}
+
+#msg-error-select {
+    color: red;
+    margin-top: 1px;
+    display: none;
+}
+
+#open-modal {
+    display: flex;
+    margin-top: 8px;
+}

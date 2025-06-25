@@ -1,0 +1,156 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+
+echo $block->getLayout()
+    ->createBlock(
+        \Magento\Framework\View\Element\Template::class,
+        'cimaco.custom.messages',             
+        ['template' => 'Magento_Theme::html/messages.phtml']
+    )
+    ->toHtml();
+
+/** @var \Cimaco\AddToMyEventLink\ViewModel\ProductInfo $productInfoVM */
+/** @var \Cimaco\AddToMyEventLink\ViewModel\LoginStatus $loginStatusVM */
+$productInfoVM = $block->getData('productInfoVM');
+$loginStatusVM = $block->getData('loginStatusVM');
+$imageUrl = $productInfoVM->getImageUrl();
+$price = $productInfoVM->getPrice();
+$getEvents = $productInfoVM->getEvents();
+$loginStatus = $loginStatusVM->isTheCustomerLoggedIn();
+?>
+<?php if ($loginStatus === true && count($getEvents['events']) > 0): ?>
+    <br><a href="#" id="open-modal" class="action add-to-my-event">Agregar a mi mesa de regalos +</a>
+    <div id="add-to-my-event-modal" style="display:none;">
+        <div id="product-info-container">
+            <div>
+                <?php if ($imageUrl): ?>
+                    <img src="<?= $escaper->escapeUrl($imageUrl) ?>" alt="Imagen del prod" height="auto;" />
+                <?php else: ?>
+                    <p>No hay imagen disponible</p>
+                <?php endif; ?>
+            </div>
+            <div id="qty-and-price">
+                <div id="qty">Cantidad: <span id="selected-qty">1</span></div>
+                <div id="price"><?php echo ($price) ?></div>
+            </div>
+        </div>
+        <div>
+            <select name="select-event" id="select-event">
+                <option value="">Selecciona una opción</option>
+                <?php 
+                    foreach (($getEvents)['events'] as $event) {
+                        echo '<option value="' . $escaper->escapeHtmlAttr($event['id']) . '">' . $escaper->escapeHtml($event['eventName']) . '</option>';
+                    }
+                ?>
+            </select>
+            <div id="msg-error-select">Por favor, selecciona una evento</div>
+        </div>
+        <div>
+            <div>Tipo de regalo:</div>
+            <div id="gift-types">
+                <div id="physical-gift-type">
+                    <input id="physical" type="radio" name="gift-type" value="physical" checked>
+                    <label for="physical">Físico</label>
+                </div>
+                <div id="ecological-gift-type">
+                    <input id="ecological" type="radio" name="gift-type" value="ecological">
+                    <label for="ecological">Ecológico</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        require([
+            'jquery',
+            'Magento_Ui/js/modal/modal',
+            'uiRegistry',
+            'jquery/validate'
+        ], function ($, modal, registry) {
+            var options = {
+                type: 'popup',
+                title: 'Agregar a mi evento',
+                responsive: true,
+                innerScroll: true,
+                buttons: [{
+                    text: 'Cancelar'
+                },{
+                    text: 'Agregar a mi evento',
+                    class: 'add-to-my-event-button',
+                    click: function () {
+                        var select = $('#select-event').val();
+                        if (!select) {
+                            $('#msg-error-select').show();
+                        } else {
+                            $('#msg-error-select').hide();
+                            addItem();
+                            $('#add-to-my-event-modal').modal('closeModal');
+                            require([
+                                'jquery',
+                                'Magento_Customer/js/customer-data'
+                            ], function ($, customerData) {
+                                customerData.set('messages', {
+                                    messages: [{
+                                        type: 'success',
+                                        text: 'Producto agregado al evento'
+                                    }]
+                                });
+                            });
+                        }
+                    }
+                }]
+            };
+            
+            modal(options, $('#add-to-my-event-modal'));
+
+            $('#open-modal').on('click', function() {
+                var $qty = $('#qty');
+
+                if ($qty.valid()) {
+                    setTimeout(function() {
+                        $('#selected-qty').text($qty.val());
+                        $('#add-to-my-event-modal').modal('openModal');
+                    }, 100);
+                    
+                } else {
+                    $('html, body').animate({
+                        scrollTop: $qty.offset().top - 100
+                    }, 500);
+                } 
+            });
+                
+
+            async function addItem() {
+                var FORM_KEY = '<?= $block->getFormKey() ?>';
+                const eventId = $('#select-event').val();
+                const giftType = $('input[name="gift-type"]:checked').val();
+                const qty = parseInt($('#selected-qty').text());
+                const productName = <?= json_encode($productInfoVM->getProductName()) ?>;
+                const imagePath = <?= json_encode($productInfoVM->getImageUrl()) ?>;
+                const category = <?= json_encode($productInfoVM->getCategory()) ?>;
+                const price = <?= json_encode($productInfoVM->getPrice()) ?>;
+                const priceParsed = parseFloat(price.replace("$", ""));
+                try {
+                    const response = await fetch(`/addgift/proxy/addgiftapi?eventId=${eventId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            skuId: 1234, // Hardcoded
+                            quantity: qty,
+                            productName: productName,
+                            type: giftType,
+                            imagePath: imagePath,
+                            productId: 1234, // Hardcoded
+                            categoryName: category,
+                            categoryId: 4, // Hardcoded
+                            price: priceParsed
+                        })
+                    });
+                    console.log(response);
+                } catch (err) {
+                    console.error('Proxy error:', err);
+                }
+            }
+            
+        });
+    </script>
+<?php endif; ?>
